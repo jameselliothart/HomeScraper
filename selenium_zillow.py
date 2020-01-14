@@ -4,9 +4,39 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from contextlib import contextmanager
 from bs4 import BeautifulSoup
 from collections import namedtuple
+import json
 import unicodedata
+import time
+import os
+
+
+CHROME_DRIVER = "/home/james/source/repos/zillow/chromedriver_linux64/chromedriver"
+url = 'https://www.zillow.com/homes/for_sale/house_type/3-_beds/2.0-_baths/?searchQueryState={%22pagination%22:{},%22mapBounds%22:{%22west%22:-95.76427426757812,%22east%22:-95.3625866455078,%22south%22:29.66314808323101,%22north%22:29.90569536762166},%22isMapVisible%22:true,%22mapZoom%22:12,%22filterState%22:{%22price%22:{%22min%22:300000,%22max%22:500000},%22monthlyPayment%22:{%22min%22:1097,%22max%22:1829},%22beds%22:{%22min%22:3},%22isManufactured%22:{%22value%22:false},%22isCondo%22:{%22value%22:false},%22isMultiFamily%22:{%22value%22:false},%22isApartment%22:{%22value%22:false},%22isLotLand%22:{%22value%22:false},%22isTownhouse%22:{%22value%22:false},%22baths%22:{%22min%22:2},%22hoa%22:{%22max%22:200},%22hasAirConditioning%22:{%22value%22:true},%22hasGarage%22:{%22value%22:true},%22built%22:{%22min%22:2015}},%22isListVisible%22:true}'
+# url = 'https://www.zillow.com/homes/for_sale/house_type/3-_beds/2.0-_baths/?searchQueryState={%22pagination%22:{},%22mapBounds%22:{%22west%22:-95.77269044767343,%22east%22:-95.57184663663827,%22south%22:29.72443627345869,%22north%22:29.845709239371146},%22mapZoom%22:13,%22isMapVisible%22:true,%22filterState%22:{%22price%22:{%22min%22:200000,%22max%22:500000},%22monthlyPayment%22:{%22min%22:740,%22max%22:1829},%22beds%22:{%22min%22:3},%22isManufactured%22:{%22value%22:false},%22isCondo%22:{%22value%22:false},%22isMultiFamily%22:{%22value%22:false},%22isApartment%22:{%22value%22:false},%22isLotLand%22:{%22value%22:false},%22isTownhouse%22:{%22value%22:false},%22baths%22:{%22min%22:2},%22hasAirConditioning%22:{%22value%22:true},%22hasGarage%22:{%22value%22:true},%22built%22:{%22min%22:2010}},%22isListVisible%22:true}'
+
+
+@contextmanager
+def open_driver(options=Options()):
+    driver = webdriver.Chrome(CHROME_DRIVER, options=options)
+    yield driver
+    driver.quit()
+
+
+def get_page_source(driver, url):
+    print(f'Getting {url}')
+    driver.get(url)
+    page_source = driver.page_source
+    return page_source
+
+
+def get_detail_links(page_source, class_identifier='list-card-link'):
+    soup = BeautifulSoup(page_source, 'lxml')
+    link_finder = soup.find_all('a', class_=class_identifier)
+    detail_links = [link['href'] for link in link_finder]  # https://www.zillow.com/homedetails/1213-Elberta-St-Houston-TX-77051/27864812_zpid/
+    return detail_links
 
 
 def get_home_info(soup_home):
@@ -39,32 +69,34 @@ def get_home_info(soup_home):
     return home_info
 
 
-CHROME_DRIVER = "/home/james/source/repos/zillow/chromedriver_linux64/chromedriver"
-url = 'https://www.zillow.com/homes/for_sale/house_type/3-_beds/2.0-_baths/?searchQueryState={%22pagination%22:{},%22mapBounds%22:{%22west%22:-95.76427426757812,%22east%22:-95.3625866455078,%22south%22:29.66314808323101,%22north%22:29.90569536762166},%22isMapVisible%22:true,%22mapZoom%22:12,%22filterState%22:{%22price%22:{%22min%22:300000,%22max%22:500000},%22monthlyPayment%22:{%22min%22:1097,%22max%22:1829},%22beds%22:{%22min%22:3},%22isManufactured%22:{%22value%22:false},%22isCondo%22:{%22value%22:false},%22isMultiFamily%22:{%22value%22:false},%22isApartment%22:{%22value%22:false},%22isLotLand%22:{%22value%22:false},%22isTownhouse%22:{%22value%22:false},%22baths%22:{%22min%22:2},%22hoa%22:{%22max%22:200},%22hasAirConditioning%22:{%22value%22:true},%22hasGarage%22:{%22value%22:true},%22built%22:{%22min%22:2015}},%22isListVisible%22:true}'
-
 # can use options to avoid loading images, use disk cache, headless browser
 chrome_options = Options()
-chrome_options.add_argument("start-maximized")
-driver = webdriver.Chrome(CHROME_DRIVER, options=chrome_options)
-
-child_chrome_options = Options()
-# child_chrome_options.add_argument("--headless")
+# chrome_options.add_argument("start-maximized")
 
 # need to loop here to get all paginated results
-driver.get(url)
-page_source_overview = driver.page_source
-soup = BeautifulSoup(page_source_overview, 'lxml')
-link_finder = soup.find_all('a', class_='list-card-link')
+all_home_info = []
+with open_driver(chrome_options) as driver:
+    detail_links = set()
+    driver.get(url)
+    while True:
+        try:
+            time.sleep(1)
+            page_source = driver.page_source
+            page_links = get_detail_links(page_source)
+            detail_links.update(page_links)
+            driver.find_element_by_xpath("//a[@aria-label='NEXT Page']").click()
+        except Exception as e:
+            print(f'{e}')
+            break
+    for link in list(detail_links)[0:3]:
+        time.sleep(1)
+        detail_source = get_page_source(driver, link)
+        detail_soup = BeautifulSoup(detail_source, 'lxml')
+        home_info = get_home_info(detail_soup)
+        all_home_info.append(home_info)
 
-# once we have all the home detail links, get info for all of them
-detail_links = [link['href'] for link in link_finder]
-link = detail_links[0]  # https://www.zillow.com/homedetails/1213-Elberta-St-Houston-TX-77051/27864812_zpid/
-
-# get page source for a home from url
-child_driver = webdriver.Chrome(CHROME_DRIVER, options=child_chrome_options)
-child_driver.get(link)
-home_source_info = child_driver.page_source
-soup_home = BeautifulSoup(home_source_info, 'lxml')
-
-home_info = get_home_info(soup_home)
-print(home_info)
+output_file = 'home_info.json'
+if os.path.exists(output_file):
+    os.remove(output_file)
+with open(output_file, 'a') as fp:
+    json.dump(all_home_info, fp)
