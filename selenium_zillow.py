@@ -98,8 +98,7 @@ with open_driver(chrome_options) as driver:
         home_info = get_home_info(detail_soup)
         all_home_info.append(home_info)
 
-output_file = 'home_info.json'
+output_file = 'home_info.csv'
 if os.path.exists(output_file):
     os.remove(output_file)
-with open(output_file, 'a') as fp:
-    json.dump(all_home_info, fp)
+pd.DataFrame(all_home_info).to_csv(output_file, index=False)
