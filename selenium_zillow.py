@@ -74,13 +74,7 @@ def get_home_info(soup_home):
     return home_info
 
 
-# can use options to avoid loading images, use disk cache, headless browser
-chrome_options = Options()
-# chrome_options.add_argument("start-maximized")
-
-# need to loop here to get all paginated results
-all_home_info = []
-with open_driver(chrome_options) as driver:
+def accumulate_detail_links(driver, url):
     detail_links = set()
     driver.get(url)
     while True:
@@ -93,12 +87,33 @@ with open_driver(chrome_options) as driver:
         except NoSuchElementException:
             print('No more NEXT')
             break
-    for link in list(detail_links)[0:3]:
+    return list(detail_links)
+
+
+def accumulate_home_info(driver, detail_links):
+    all_home_info = []
+    for link in detail_links:
         time.sleep(1)
         detail_source = get_page_source(driver, link)
         detail_soup = BeautifulSoup(detail_source, 'lxml')
         home_info = get_home_info(detail_soup)
         all_home_info.append(home_info)
+    return all_home_info
+
+
+def persist_links(filename, links):
+    with open(filename, 'w') as f:
+        for link in links:
+            print(link, file=f)
+
+
+chrome_options = Options()
+# chrome_options.add_argument("start-maximized")
+
+with open_driver(chrome_options) as driver:
+    detail_links = accumulate_detail_links(driver, url)
+    persist_links('home_detail_links.txt', detail_links)
+    all_home_info = accumulate_home_info(driver, detail_links[0:3])
 
 output_file = 'home_info.csv'
 if os.path.exists(output_file):
