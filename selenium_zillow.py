@@ -90,8 +90,8 @@ with open_driver(chrome_options) as driver:
             page_links = get_detail_links(page_source)
             detail_links.update(page_links)
             driver.find_element_by_xpath("//a[@aria-label='NEXT Page']").click()
-        except Exception as e:
-            print(f'{e}')
+        except NoSuchElementException:
+            print('No more NEXT')
             break
     for link in list(detail_links)[0:3]:
         time.sleep(1)
