@@ -61,14 +61,16 @@ def get_home_info(soup_home):
 
     # school info
     schools = soup_home.find('div', class_='ds-nearby-schools-list').contents
-    home_info['Schools'] = [
-        (
-            int(school.find('span', class_='ds-schools-display-rating').text),
-            school.find('a', class_='ds-school-name').text,
-            school.find('a', class_='ds-school-name')['href']
-        )
-        for school in schools
-    ]
+    school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
+    home_info['Schools'] = '|'.join(school_ratings)
+    # home_info['Schools'] = [
+    #     (
+    #         int(school.find('span', class_='ds-schools-display-rating').text),
+    #         school.find('a', class_='ds-school-name').text,
+    #         school.find('a', class_='ds-school-name')['href']
+    #     )
+    #     for school in schools
+    # ]
     return home_info
 
 
