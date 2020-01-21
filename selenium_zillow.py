@@ -69,36 +69,61 @@ def empty_home_info(url=None):
     return home_info
 
 
+def get_basic_home_info(soup):
+    home_info = {}
+
+    price_raw = soup.find('span', class_='ds-value').text
+    home_info['Price'] = int(price_raw.replace('$','').replace(',',''))
+
+    address_raw = soup.find('h1', class_='ds-address-container').text
+    home_info['Address'] = unicodedata.normalize("NFKD", address_raw)
+
+    bed_bath = soup.find('h3', class_='ds-bed-bath-living-area-container').contents
+    home_info['Bed'], home_info['Bath'], home_info['Sqft'] = [x.text for x in bed_bath if x.text]
+
+    return home_info
+
+
+def get_home_facts(soup):
+    fact_list = soup.find('ul', class_='ds-home-fact-list').contents
+    fact_tuples = [fact.text.split(':') for fact in fact_list]
+    home_facts = {fact_tuple[0].replace(' ','').replace('/',''): fact_tuple[1] for fact_tuple in fact_tuples}
+    return home_facts
+
+
+def get_school_info(soup):
+    school_info = {}
+
+    schools = soup.find('div', class_='ds-nearby-schools-list').contents
+    school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
+    school_info['Schools'] = '|'.join(school_ratings)
+    # home_info['Schools'] = [
+    #     (
+    #         int(school.find('span', class_='ds-schools-display-rating').text),
+    #         school.find('a', class_='ds-school-name').text,
+    #         school.find('a', class_='ds-school-name')['href']
+    #     )
+    #     for school in schools
+    # ]
+    return school_info
+
+
 def get_home_info(page_source, url=None):
     # home = namedtuple('house', ['Price', 'Address', 'Bed', 'Bath', 'Sqft', 'Type', 'Yearbuilt', 'Heating', 'Cooling', 'Parking', 'Lot', 'Pricesqft', 'Schools'])
+    home_info = empty_home_info(url)
     soup_home = BeautifulSoup(page_source, 'lxml')
     try:
         # basic info: value, address, size
-        home_info = empty_home_info(url)
-        price_raw = soup_home.find('span', class_='ds-value').text
-        address_raw = soup_home.find('h1', class_='ds-address-container').text
-        bed_bath = soup_home.find('h3', class_='ds-bed-bath-living-area-container').contents
-        home_info['Price'] = int(price_raw.replace('$','').replace(',',''))
-        home_info['Address'] = unicodedata.normalize("NFKD", address_raw)
-        home_info['Bed'], home_info['Bath'], home_info['Sqft'] = [x.text for x in bed_bath if x.text]
+        basic_info = get_basic_home_info(soup_home)
+        home_info.update(basic_info)
 
         # home facts (year built, parking, lot size, etc)
-        fact_list = soup_home.find('ul', class_='ds-home-fact-list').contents
-        home_facts = {fact_tuple[0].replace(' ','').replace('/',''): fact_tuple[1] for fact_tuple in [fact.text.split(':') for fact in fact_list]}
+        home_facts = get_home_facts(soup_home)
         home_info.update(home_facts)
 
-        # school info
-        schools = soup_home.find('div', class_='ds-nearby-schools-list').contents
-        school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
-        home_info['Schools'] = '|'.join(school_ratings)
-        # home_info['Schools'] = [
-        #     (
-        #         int(school.find('span', class_='ds-schools-display-rating').text),
-        #         school.find('a', class_='ds-school-name').text,
-        #         school.find('a', class_='ds-school-name')['href']
-        #     )
-        #     for school in schools
-        # ]
+        # school ratings
+        school_info = get_school_info(soup_home)
+        home_info.update(school_info)
     except AttributeError:
         print(f'Could not get some attributes for {url}')
 
