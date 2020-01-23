@@ -54,5 +54,13 @@ class Home():
         school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
         self.info['Schools'] = '|'.join(school_ratings)
 
+    def update_all_info(self):
+        try:
+            self.update_basic_home_info()
+            self.update_home_facts()
+            self.update_school_info()
+        except AttributeError:
+            print(f'Could not get some attributes for {self.info["Link"]}')
+
     def __repr__(self):
         return repr(self.info)
