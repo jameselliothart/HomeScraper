@@ -1,11 +1,13 @@
 import unicodedata
 from collections import OrderedDict
+from bs4 import BeautifulSoup
 
 
 class Home():
     ATTRIBUTES = ['Price','Address','Bed','Bath','Sqft','Type','Yearbuilt','Heating','Cooling','Parking','Lot','Pricesqft','Schools','Link']
 
-    def __init__(self, url=None):
+    def __init__(self, page_source=None, url=None):
+        self.soup = BeautifulSoup(page_source, 'lxml') if page_source else None
         self.info = OrderedDict([(attribute, None) for attribute in Home.ATTRIBUTES])
         self.info['Link'] = url
 
