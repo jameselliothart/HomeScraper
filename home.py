@@ -41,7 +41,11 @@ class Home():
     def update_home_facts(self, soup):
         fact_list = soup.find('ul', class_='ds-home-fact-list').contents
         fact_tuples = [fact.text.split(':') for fact in fact_list]
-        home_facts = {self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1] for fact_tuple in fact_tuples if fact_tuple[0] in Home.ATTRIBUTES}
+        home_facts = {
+            self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1] 
+            for fact_tuple in fact_tuples 
+            if self._sanitize_home_fact(fact_tuple[0]) in Home.ATTRIBUTES
+        }
         self.info.update(home_facts)
 
     def update_school_info(self, soup):
