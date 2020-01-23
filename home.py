@@ -12,7 +12,7 @@ class Home():
         self.info['Link'] = url
 
     @staticmethod
-    def create_from_keywords(**kwargs):
+    def create_info_from_keywords(**kwargs):
         home = Home()
         home.info.update({k: v for k, v in kwargs.items() if k in Home.ATTRIBUTES})
         return home
