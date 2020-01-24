@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from contextlib import contextmanager
+from bs4 import BeautifulSoup
 
 
 @contextmanager
@@ -29,3 +30,12 @@ class WebScraper(webdriver.Chrome):
         self.get(url)
         _ = self.check_captcha_challenge()
 
+    @staticmethod
+    def get_detail_links(page_source, class_identifier='list-card-link'):
+        soup = BeautifulSoup(page_source, 'lxml')
+        link_finder = soup.find_all('a', class_=class_identifier)
+        detail_links = [link['href'] for link in link_finder]  # https://www.zillow.com/homedetails/1213-Elberta-St-Houston-TX-77051/27864812_zpid/
+        return detail_links
+
+    def get_current_page_detail_links(self, class_identifier='list-card-link'):
+        return self.get_detail_links(self.page_source, class_identifier)

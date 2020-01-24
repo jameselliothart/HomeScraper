@@ -62,3 +62,11 @@ class TestScraper():
         driver.get('https://www.google.com/')
         actual = driver.check_captcha_challenge()
         assert actual is None
+
+    def test_get_detail_links(self):
+        with open('resources/expected_links.txt', 'r') as f:
+            expected = [line.rstrip() for line in f]
+        with open('resources/search_results.html', 'r') as f:
+            page_source = f.read()
+        actual = WebScraper.get_detail_links(page_source)
+        assert actual == expected
