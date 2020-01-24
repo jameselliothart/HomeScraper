@@ -8,7 +8,7 @@ from scraper import WebScraper, open_driver
 class TestHome():
     @pytest.fixture(scope='session')
     def home_detail_source(self):
-        with open('resources/home_detail.html', 'r') as f:
+        with open('test_data/home_detail.html', 'r') as f:
             yield f.read()
 
     def test_home_gets_basic_info(self, home_detail_source):
@@ -64,9 +64,9 @@ class TestScraper():
         assert actual is None
 
     def test_get_detail_links(self):
-        with open('resources/expected_links.txt', 'r') as f:
+        with open('test_data/expected_links.txt', 'r') as f:
             expected = [line.rstrip() for line in f]
-        with open('resources/search_results.html', 'r') as f:
+        with open('test_data/search_results.html', 'r') as f:
             page_source = f.read()
         actual = WebScraper.get_detail_links(page_source)
         assert actual == expected
