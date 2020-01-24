@@ -53,3 +53,12 @@ class TestScraper():
     def test_driver_initializes(self, driver):
         assert True
 
+    def test_identifies_captcha_when_exists(self, driver):
+        driver.get('https://www.tutdepot.com/demos/custom-captcha-image-script/')
+        actual = driver.check_captcha_challenge(handle_captcha=(lambda : 'identified captcha'))
+        assert actual == 'identified captcha'
+
+    def test_no_callback_when_no_captcha(self, driver):
+        driver.get('https://www.google.com/')
+        actual = driver.check_captcha_challenge()
+        assert actual is None
