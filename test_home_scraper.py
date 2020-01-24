@@ -1,6 +1,8 @@
 import pytest
 from collections import OrderedDict
+from selenium.webdriver.chrome.options import Options
 from home import Home
+from scraper import WebScraper, open_driver
 
 
 class TestHome():
@@ -39,4 +41,15 @@ class TestHome():
     def test_sanitize_home_fact_removes_slash(self):
         assert Home._sanitize_home_fact('Price/sqft') == 'Pricesqft'
 
-# https://www.tutdepot.com/demos/custom-captcha-image-script/ has "//iframe[@title='recaptcha challenge']"
+
+class TestScraper():
+    @pytest.fixture(scope='session')
+    def driver(self):
+        options = Options()
+        options.add_argument("--headless")
+        with open_driver(options=options) as driver:
+            yield driver
+
+    def test_driver_initializes(self, driver):
+        assert True
+
