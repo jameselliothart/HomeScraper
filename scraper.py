@@ -26,9 +26,9 @@ class WebScraper(webdriver.Chrome):
             return captcha_handler()
         return None
 
-    def safe_get(self, url):
-        self.get(url)
-        _ = self.check_captcha_challenge()
+    def get(self, url, handle_captcha=None, xpath="//iframe[@title='recaptcha challenge']"):
+        super().get(url)
+        return self.check_captcha_challenge(handle_captcha=handle_captcha, xpath=xpath)
 
     @staticmethod
     def get_detail_links(page_source, class_identifier='list-card-link'):
