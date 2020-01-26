@@ -44,7 +44,7 @@ class Home():
         fact_tuples = [fact.text.split(':') for fact in fact_list]
         home_facts = {
             self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1] 
-            for fact_tuple in fact_tuples 
+            for fact_tuple in fact_tuples
             if self._sanitize_home_fact(fact_tuple[0]) in Home.ATTRIBUTES
         }
         self.info.update(home_facts)
