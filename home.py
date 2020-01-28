@@ -17,6 +17,8 @@ class Home():
         home.info.update({k: v for k, v in kwargs.items() if k in Home.ATTRIBUTES})
         return home
 
+    #region private methods
+
     @staticmethod
     def _sanitize_home_fact(fact):
         return fact.replace(' ','').replace('/','')
@@ -32,6 +34,8 @@ class Home():
     def _update_bed_bath(self):
         bed_bath = self.soup.find('h3', class_='ds-bed-bath-living-area-container').contents
         self.info['Bed'], self.info['Bath'], self.info['Sqft'] = [x.text for x in bed_bath if x.text]
+
+    #endregion
 
     def update_basic_home_info(self):
         self._update_price()
