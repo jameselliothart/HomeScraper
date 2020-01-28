@@ -39,3 +39,22 @@ class WebScraper(webdriver.Chrome):
 
     def get_current_page_detail_links(self, class_identifier='list-card-link'):
         return self.get_detail_links(self.page_source, class_identifier)
+
+    def click_by_xpath(self, xpath="//a[@aria-label='NEXT Page']"):
+        # expecting to raise NoSuchElementException when button no longer found
+        self.find_element_by_xpath(xpath).click()
+
+    def get_all_detail_links(self, search_url):
+        detail_links = set()
+        self.get(search_url)
+        while True:
+            try:
+                time.sleep(1)  # give time for page to render Next button
+                page_links = self.get_current_page_detail_links()
+                detail_links.update(page_links)
+                self.click_by_xpath()
+            except NoSuchElementException:
+                print('No more NEXT')
+                break
+        return list(detail_links)
+
