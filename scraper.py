@@ -1,8 +1,10 @@
+import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from contextlib import contextmanager
 from bs4 import BeautifulSoup
+from home import Home
 
 
 @contextmanager
@@ -58,3 +60,12 @@ class WebScraper(webdriver.Chrome):
                 break
         return list(detail_links)
 
+    def get_url_home_info(self, url, i_home, sleep=0):
+        self.get(url)
+        time.sleep(sleep)  # give time for page to load
+        home = i_home(self.page_source, url)
+        home.update_all_info()
+        return home.info
+
+    def get_home_info(self, detail_links, i_home=Home, sleep=1):
+        return [self.get_url_home_info(link, i_home, sleep) for link in detail_links]

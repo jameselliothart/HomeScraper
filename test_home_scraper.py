@@ -69,3 +69,19 @@ class TestScraper():
             page_source = f.read()
         actual = WebScraper.get_detail_links(page_source)
         assert actual == expected
+
+    def test_get_url_home_info(self, driver):
+        actual = driver.get_url_home_info('https://www.google.com/', StubHome, sleep=0)
+        assert actual['SourceLength'] > 0
+        assert actual['Link'] == 'https://www.google.com/'
+
+
+class StubHome():
+    def __init__(self, page_source, url):
+        self.page_source = page_source
+        self.url = url
+        self.info = None
+
+    def update_all_info(self):
+        self.info = {'SourceLength': len(self.page_source), 'Link': self.url}
+
