@@ -38,25 +38,34 @@ class Home():
     #endregion
 
     def update_basic_home_info(self):
-        self._update_price()
-        self._update_address()
-        self._update_bed_bath()
+        try:
+            self._update_price()
+            self._update_address()
+            self._update_bed_bath()
+        except AttributeError:
+            print(f'Could not get some basic home info for {self.info["Link"]}')
 
     def update_home_facts(self):
-        # 'Type', 'Yearbuilt', 'Heating', 'Cooling', 'Parking', 'Lot', 'Pricesqft'
-        fact_list = self.soup.find('ul', class_='ds-home-fact-list').contents
-        fact_tuples = [fact.text.split(':') for fact in fact_list]
-        home_facts = {
-            self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1] 
-            for fact_tuple in fact_tuples
-            if self._sanitize_home_fact(fact_tuple[0]) in Home.ATTRIBUTES
-        }
-        self.info.update(home_facts)
+        try:
+            # 'Type', 'Yearbuilt', 'Heating', 'Cooling', 'Parking', 'Lot', 'Pricesqft'
+            fact_list = self.soup.find('ul', class_='ds-home-fact-list').contents
+            fact_tuples = [fact.text.split(':') for fact in fact_list]
+            home_facts = {
+                self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1]
+                for fact_tuple in fact_tuples
+                if self._sanitize_home_fact(fact_tuple[0]) in Home.ATTRIBUTES
+            }
+            self.info.update(home_facts)
+        except AttributeError:
+            print(f'Could not get some home facts for {self.info["Link"]}')
 
     def update_school_info(self):
-        schools = self.soup.find('div', class_='ds-nearby-schools-list').contents
-        school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
-        self.info['Schools'] = '|'.join(school_ratings)
+        try:
+            schools = self.soup.find('div', class_='ds-nearby-schools-list').contents
+            school_ratings = [school.find('span', class_='ds-schools-display-rating').text for school in schools]
+            self.info['Schools'] = '|'.join(school_ratings)
+        except AttributeError:
+            print(f'Could not get some school info for {self.info["Link"]}')
 
     def update_all_info(self):
         try:
