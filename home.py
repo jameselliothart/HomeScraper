@@ -23,6 +23,10 @@ class Home():
     def _sanitize_home_fact(fact):
         return fact.replace(' ','').replace('/','')
 
+    @staticmethod
+    def _get_home_fact_tuple(fact_tuple):
+        return (Home._sanitize_home_fact(fact_tuple[0]), fact_tuple[1].strip())
+
     def _update_price(self):
         price_raw = self.soup.find('span', class_='ds-value').text
         self.info['Price'] = int(price_raw.replace('$','').replace(',',''))
@@ -50,11 +54,11 @@ class Home():
             # 'Type', 'Yearbuilt', 'Heating', 'Cooling', 'Parking', 'Lot', 'Pricesqft'
             fact_list = self.soup.find('ul', class_='ds-home-fact-list').contents
             fact_tuples = [fact.text.split(':') for fact in fact_list]
-            home_facts = {
-                self._sanitize_home_fact(fact_tuple[0]): fact_tuple[1]
+            home_facts = dict(
+                self._get_home_fact_tuple(fact_tuple)
                 for fact_tuple in fact_tuples
-                if self._sanitize_home_fact(fact_tuple[0]) in Home.ATTRIBUTES
-            }
+                if self._get_home_fact_tuple(fact_tuple)[0] in Home.ATTRIBUTES
+            )
             self.info.update(home_facts)
         except AttributeError:
             print(f'Could not get some home facts for {self.info["Link"]}')
