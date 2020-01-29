@@ -1,10 +1,11 @@
+import re
 import unicodedata
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 
 
 class Home():
-    ATTRIBUTES = ['Price','Address','Bed','Bath','Sqft','Type','Yearbuilt','Heating','Cooling','Parking','Lot','Pricesqft','Schools','Link']
+    ATTRIBUTES = ['Price','Address','Bed','Bath','Sqft','Type','Yearbuilt','Heating','Cooling','Parking','Lot','Pricesqft','Attachedgarage','Privatepool','Schools','Link']
 
     def __init__(self, page_source=None, url=None):
         self.soup = BeautifulSoup(page_source, 'lxml') if page_source else None
@@ -40,6 +41,19 @@ class Home():
         self.info['Bed'], self.info['Bath'], self.info['Sqft'] = [x.text for x in bed_bath if x.text]
 
     #endregion
+
+    def update_property_details(self):
+        try:
+            attached_garage = self.soup(text=re.compile(r'Attached garage'))
+            if attached_garage:
+                garage_info = attached_garage[0].split(':')
+                self.info.update({self._get_home_fact_tuple(garage_info)})
+            private_pool = self.soup(text=re.compile(r'Private pool'))
+            if private_pool:
+                pool_info = private_pool[0].split(':')
+                self.info.update({self._get_home_fact_tuple(pool_info)})
+        except AttributeError:
+            print(f'Could not get some property details for {self.info["Link"]}')
 
     def update_basic_home_info(self):
         try:

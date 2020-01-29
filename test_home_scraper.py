@@ -35,6 +35,14 @@ class TestHome():
         expected = {'Schools': '4|5|7'}
         assert sut_home.info == Home.create_info_from_keywords(**expected).info
 
+    def test_home_gets_property_info(self, home_detail_source):
+        sut_home = Home(home_detail_source)
+
+        sut_home.update_property_details()
+
+        expected = {'Attachedgarage': 'Yes'}
+        assert sut_home.info == Home.create_info_from_keywords(**expected).info
+
     def test_sanitize_home_fact_removes_space(self):
         assert Home._sanitize_home_fact('Year built') == 'Yearbuilt'
 
