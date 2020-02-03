@@ -23,7 +23,7 @@ class WebScraper(webdriver.Chrome):
 
     def check_captcha_challenge(self, handle_captcha, xpath):
         captcha_handler = self._handle_captcha if handle_captcha is None else handle_captcha
-        captcha = self.find_elements_by_xpath(xpath)
+        captcha = self.find_elements_by_xpath(xpath) or 'captchaPerimeter' in self.current_url
         if captcha:
             return captcha_handler()
         return None
