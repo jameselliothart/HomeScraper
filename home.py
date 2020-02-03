@@ -90,6 +90,7 @@ class Home():
             self.update_basic_home_info()
             self.update_home_facts()
             self.update_school_info()
+            self.update_property_details()
         except AttributeError:
             print(f'Could not get some attributes for {self.info["Link"]}')
 
