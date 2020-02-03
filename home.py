@@ -44,14 +44,11 @@ class Home():
 
     def update_property_details(self):
         try:
-            attached_garage = self.soup(text=re.compile(r'Attached garage'))
-            if attached_garage:
-                garage_info = attached_garage[0].split(':')
-                self.info.update({self._get_home_fact_tuple(garage_info)})
-            private_pool = self.soup(text=re.compile(r'Private pool'))
-            if private_pool:
-                pool_info = private_pool[0].split(':')
-                self.info.update({self._get_home_fact_tuple(pool_info)})
+            facts_and_features = self.soup.find('div', {'class': 'ds-home-facts-and-features'}).findChildren('span')
+            attached_garage = [span.text for span in facts_and_features if 'Attached garage' in span.text]
+            private_pool = [span.text for span in facts_and_features if 'Private pool' in span.text]
+            self.info.update({self._get_home_fact_tuple(garage.split(':')) for garage in attached_garage})
+            self.info.update({self._get_home_fact_tuple(pool.split(':')) for pool in private_pool})
         except AttributeError:
             print(f'Could not get some property details for {self.info["Link"]}')
 
