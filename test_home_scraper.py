@@ -43,6 +43,15 @@ class TestHome():
         expected = {'Attachedgarage': 'Yes'}
         assert sut_home.info == Home.create_info_from_keywords(**expected).info
 
+    def test_home_gets_pool_info(self):
+        with open('test_data/pool.html', 'r') as f:
+            html = f.read()
+        sut_home = Home(html)
+        sut_home.update_property_details()
+
+        expected = {'Privatepool': 'Yes'}
+        assert sut_home.info == Home.create_info_from_keywords(**expected).info
+
     def test_sanitize_home_fact_removes_space(self):
         assert Home._sanitize_home_fact('Year built') == 'Yearbuilt'
 
